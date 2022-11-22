@@ -1,0 +1,226 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>json-server db.json to thunder-client collections</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar navbar-expand-lg bg-light p-3 mb-3">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#"
+            >json-server db.json to thunder-client collections</a
+          >
+          <div class="ms-auto">WeiJ</div>
+        </div>
+      </nav>
+
+      <div class="p-3">
+        <h4 class="h4">Step.1 安裝 vscode-thunder-client</h4>
+        <p>
+          <a
+            href="https://marketplace.visualstudio.com/items?itemName=rangav.vscode-thunder-client"
+            >vscode-thunder-client</a
+          >
+        </p>
+
+        <h4 class="h4">Step.2 輸入你 json-server 用的 port</h4>
+        <p>預設為 3000 沒有調整的話不用更改</p>
+        <div class="form-floating mb-3">
+          <input
+            type="number"
+            class="form-control"
+            id="port"
+            placeholder="json-server port"
+            value="3000"
+            min="1025"
+            max="65535"
+          />
+          <label for="floatingInput">json-server port</label>
+        </div>
+
+        <h4 class="h4 mt-4">Step.3 輸入你 json-server 用的 db.json</h4>
+        <p>直接開啟 db.json 全選複製貼上即可，接著按下取得檔案</p>
+        <div class="form-floating">
+          <textarea
+            class="form-control"
+            placeholder="db.json 內容"
+            id="dbjson"
+            style="height: 250px"
+          ></textarea>
+          <label for="floatingTextarea">db.json 內容</label>
+        </div>
+        <div class="text-center mt-3">
+          <button class="btn btn-primary" id="sentBtn" type="button">
+            取得檔案
+            <span
+              class="loading d-none spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
+          </button>
+        </div>
+
+        <h4 class="h4 mt-4">
+          Step.4 開啟 VScode Thunder Collection 視窗中的 Collections
+        </h4>
+        <p>
+          選擇 <code>filter collections</code> 旁邊的 option icon 選擇
+          import，再選擇將剛剛下載的檔案
+        </p>
+        <img class="img-fluid" src="./notice.JPG" alt="" srcset="" />
+
+        <h4 class="h4 mt-4">Step.5 展開 & 開始使用</h4>
+        <img class="img-fluid" src="./notice2.JPG" alt="" srcset="" />
+      </div>
+      <a id="downloadAnchorElem" style="display: none"></a>
+    </div>
+  </body>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+    crossorigin="anonymous"
+  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    const port = document.querySelector("#port");
+    const dbjson = document.querySelector("#dbjson");
+    const loading = document.querySelector(".loading");
+    const btn = document.querySelector("#sentBtn");
+
+    const isJson = (str) => {
+      try {
+        JSON.parse(str);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    btn.addEventListener("click", () => {
+      if (!loading.classList.contains("d-none")) {
+        return;
+      }
+
+      const portValue = port.value;
+      const dbjsonValue = dbjson.value;
+
+      if (!portValue || !dbjsonValue) {
+        Swal.fire({
+          text: "為什麼不填完內容呢",
+          icon: "error",
+          confirmButtonText: "拍謝",
+        });
+        return;
+      }
+
+      if (portValue < 1025 || portValue > 65535) {
+        Swal.fire({
+          text: "port 好像不太對 , 1025 < port < 65535",
+          icon: "error",
+          confirmButtonText: "拍謝",
+        });
+        return;
+      }
+
+      if (!isJson(dbjsonValue)) {
+        Swal.fire({
+          text: "db.json 內容好像不太對",
+          icon: "error",
+          confirmButtonText: "拍謝",
+        });
+        return;
+      }
+
+      loading.classList.remove("d-none");
+
+      const json = JSON.parse(dbjsonValue);
+
+      const methods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+
+      const result = {
+        client: "Thunder Client",
+        collectionName: "Json-Server",
+        dateExported: "2022-11-22T03:48:59.041Z",
+        version: "1.1",
+        folders: [],
+        requests: [],
+      };
+
+      function _uuid() {
+        function s4() {
+          return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+        }
+        return (
+          s4() +
+          s4() +
+          "-" +
+          s4() +
+          "-" +
+          s4() +
+          "-" +
+          s4() +
+          "-" +
+          s4() +
+          s4() +
+          s4()
+        );
+      }
+
+      let requests = [];
+
+      Object.keys(json).forEach((item) => {
+        methods.forEach((method) => {
+          let obj = {
+            _id: _uuid(),
+            colId: _uuid(),
+            containerId: "",
+            name: item,
+            url: `http://localhost:${port}/${item}`,
+            method: method,
+            sortNum: 10000,
+            created: "2022-11-22T03:34:47.415Z",
+            modified: "2022-11-22T03:34:47.415Z",
+            headers: [],
+            params: [],
+            tests: [],
+          };
+
+          if (["POST", "PUT", "PATCH"].includes(method)) {
+            obj.body = {
+              type: "json",
+              raw: JSON.stringify(json[item][0]),
+              form: [],
+            };
+            requests.push(obj);
+          }
+        });
+      });
+
+      result.requests = requests;
+
+      var dataStr =
+        "data:text/json;charset=utf-8," +
+        encodeURIComponent(JSON.stringify(result));
+      var dlAnchorElem = document.getElementById("downloadAnchorElem");
+      dlAnchorElem.setAttribute("href", dataStr);
+      dlAnchorElem.setAttribute(
+        "download",
+        "thunder-collection_Json-server.json"
+      );
+      dlAnchorElem.click();
+      loading.classList.add("d-none");
+    });
+  </script>
+</html>
