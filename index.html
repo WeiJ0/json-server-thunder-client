@@ -197,12 +197,16 @@
             tests: [],
           };
 
-          if (["POST", "PUT", "PATCH"].includes(method)) {
+          if (["POST", "PUT", "PATCH"].includes(method)) {            
+            let isArray = Array.isArray(json[item]);
+            let _json = isArray ? json[item][0] : json[item];
+            delete _json.id;
+
             obj.body = {
               type: "json",
-              raw: JSON.stringify(json[item][0]),
+              raw: JSON.stringify(_json),
               form: [],
-            };           
+            };
           }
 
           requests.push(obj);
